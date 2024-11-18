@@ -1,0 +1,185 @@
+﻿using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+
+public class LauncherFPS : MonoBehaviour {
+
+    public GameObject objToLaunch3;
+    public GameObject objToLaunch2;
+    public GameObject objToLaunch1;
+    public GameObject objToLaunch;
+    public Transform launchPoint;
+	public Text infoText;
+	public bool launch,launch1,launch2,launch3;
+	public float force = 150f;
+	public float moveSpeed = 1f;
+
+	//create a trajectory predictor in code
+	TrajectoryPredictor tp;
+	void Start(){
+		tp = gameObject.AddComponent<TrajectoryPredictor>();
+		tp.drawDebugOnPrediction = true;
+        tp.reuseLine = true; 
+		tp.accuracy = 0.99f;
+		tp.lineWidth = 0.03f;
+		tp.iterationLimit = 600;
+        launch = false;
+        launch1 = false;
+        launch2 = false;
+        launch3 = false;
+	}
+
+    // Update is called once per frame
+    void Update()
+    {
+
+        //input stuff
+        if (Input.GetMouseButtonDown(0))
+            launch = false;
+        if (Input.GetKeyDown(KeyCode.T))
+            launch1 = true;
+        if (Input.GetKeyDown(KeyCode.H))
+            launch2 = true;
+        if (Input.GetKeyDown(KeyCode.B))
+            launch3 = true;
+
+        if (Input.GetKey(KeyCode.R) || Input.GetKey(KeyCode.UpArrow))
+            force += moveSpeed / 10f;
+        if (Input.GetKey(KeyCode.F) || Input.GetKey(KeyCode.DownArrow))
+            force -= moveSpeed / 10f;
+
+        force = Mathf.Clamp(force, 10f, 152f);
+
+        if (launch3)
+        {
+            launch3 = false;
+            Launch3();
+        }
+        else if (launch1)
+        {
+            launch1 = false;
+            Launch1();
+        }
+        else if (launch2)
+        {
+            launch2 = false;
+            Launch2();
+        }
+        else if (launch)
+        {
+            launch = false;
+            Launch();
+        }
+    }
+    void LateUpdate()
+    {
+		//set line duration to delta time so that it only lasts the length of a frame
+		tp.debugLineDuration = Time.unscaledDeltaTime;
+		//tell the predictor to predict a 3d line. this will also cause it to draw a prediction line
+		//because drawDebugOnPredict is set to true
+		tp.Predict3D(launchPoint.position, launchPoint.forward * force, Physics.gravity);
+
+		//this static method can be used as well to get line info without needing to have a component and such
+		//TrajectoryPredictor.GetPoints3D(launchPoint.position, launchPoint.forward * force, Physics.gravity);
+
+		//info text stuff
+		if(infoText){
+			//this will check if the predictor has a hitinfo and then if it does will update the onscreen text
+			//to say the name of the object the line hit;
+			if(tp.hitInfo3D.collider)
+				infoText.text = "Hit Object: " + tp.hitInfo3D.collider.gameObject.name;
+		}
+	}
+
+    GameObject launch1ObjParent;
+    public void Launch1()
+    {
+        
+        if (!launch1ObjParent)
+        {
+            launch1ObjParent = new GameObject();
+            launch1ObjParent.name = "Launched Objects";
+        }
+        GameObject lInst = Instantiate(objToLaunch1);
+        lInst.name = "Ball";
+        lInst.transform.SetParent(launch1ObjParent.transform);
+        Rigidbody rbi = lInst.GetComponent<Rigidbody>();
+        lInst.transform.position = launchPoint.position;
+        lInst.transform.rotation = launchPoint.rotation;
+        rbi.linearVelocity = launchPoint.forward * force;
+
+        Renderer tR = lInst.GetComponent<Renderer>();
+        tR.material = Instantiate(tR.material) as Material;
+        tR.material.color = RandomColor();
+    }
+    GameObject launch2ObjParent;
+    public void Launch2()
+    {
+        
+        if (!launch2ObjParent)
+        {
+            launch2ObjParent = new GameObject();
+            launch2ObjParent.name = "Launched Objects";
+        }
+        GameObject lInst = Instantiate(objToLaunch2);
+        lInst.name = "Ball";
+        lInst.transform.SetParent(launch2ObjParent.transform);
+        Rigidbody rbi = lInst.GetComponent<Rigidbody>();
+        lInst.transform.position = launchPoint.position;
+        lInst.transform.rotation = launchPoint.rotation;
+        rbi.linearVelocity = launchPoint.forward * force;
+
+        Renderer tR = lInst.GetComponent<Renderer>();
+        tR.material = Instantiate(tR.material) as Material;
+        tR.material.color = RandomColor();
+    }
+    GameObject launchObjParent;
+    void Launch()
+    {
+        
+        if (!launchObjParent)
+        {
+            launchObjParent = new GameObject();
+            launchObjParent.name = "Launched Objects";
+        }
+        GameObject lInst = Instantiate(objToLaunch);
+        lInst.name = "Ball";
+        lInst.transform.SetParent(launchObjParent.transform);
+        Rigidbody rbi = lInst.GetComponent<Rigidbody>();
+        lInst.transform.position = launchPoint.position;
+        lInst.transform.rotation = launchPoint.rotation;
+        rbi.linearVelocity = launchPoint.forward * force;
+
+        Renderer tR = lInst.GetComponent<Renderer>();
+        tR.material = Instantiate(tR.material) as Material;
+        tR.material.color = RandomColor();
+    }
+    GameObject launch3ObjParent;
+    public void Launch3()
+    {
+       
+        if (!launch3ObjParent)
+        {
+            launch3ObjParent = new GameObject();
+            launch3ObjParent.name = "Launched Objects";
+        }
+        GameObject lInst = Instantiate(objToLaunch3);
+        lInst.name = "Ball";
+        lInst.transform.SetParent(launch3ObjParent.transform);
+        Rigidbody rbi = lInst.GetComponent<Rigidbody>();
+        lInst.transform.position = launchPoint.position;
+        lInst.transform.rotation = launchPoint.rotation;
+        rbi.linearVelocity = launchPoint.forward * force;
+
+        Renderer tR = lInst.GetComponent<Renderer>();
+        tR.material = Instantiate(tR.material) as Material;
+        tR.material.color = RandomColor();
+    }
+
+    Color RandomColor(){
+		float r = Random.Range (0.0f, 1.0f);
+		float g = Random.Range (0.0f, 1.0f);
+		float b = Random.Range (0.0f, 1.0f);
+		return new Color(r,g,b);
+	}
+}
